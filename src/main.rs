@@ -1,13 +1,28 @@
-use resistance_fort::ui::menu_next_command;
+use resistance_fort::ui::*;
+use std::process;
+use std::thread::sleep;
+use std::time::{Duration, SystemTime};
+
+const SIXTEEN_MILLIS: Duration = Duration::from_millis(16);
 
 fn main() {
     loop {
-        let next_command = menu_next_command();
+        let start = SystemTime::now();
 
-        if let Err(e) = run(config) {
-            println!("Application error: {e}");
-            process::exit(1);
+        process_input();
+        // update();
+        // render();
+
+        let elapsed = SystemTime::now().duration_since(start + SIXTEEN_MILLIS);
+
+        match elapsed {
+            Err(e) => {
+                eprintln!("Error computing elapsed time in game loop: {}", e);
+                process::exit(1)
+            }
+            Ok(elapsed) => {
+                sleep(elapsed);
+            }
         }
-        println!("again!");
     }
 }
