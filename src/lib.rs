@@ -1,4 +1,5 @@
 pub mod character_record;
+pub mod improvement;
 
 use crate::character_record::Character;
 use std::error::Error;

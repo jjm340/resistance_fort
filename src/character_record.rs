@@ -1,9 +1,4 @@
-pub struct Improvement {
-    cost: u32,
-    description: String,
-
-    take_turn: fn(&mut Character) -> (),
-}
+use crate::improvement;
 
 pub struct Character {
     turns_left: u32,
@@ -11,7 +6,7 @@ pub struct Character {
     food: u32,
     cash: u32,
 
-    improvements: Vec<Improvement>,
+    improvements: Vec<improvement::Improvement>,
 }
 
 impl Character {
