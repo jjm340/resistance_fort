@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Tavern",
+    "description": "Structure that generates income in exchange for food",
+    "cost": ["food", 1],
+    "benefit": ["cash", 1]
+  },
+  {
+    "name": "Granary",
+    "description": "Structure that generates food in exchange for income",
+    "cost": ["cash", 1],
+    "benefit": ["food", 1]
+  }
+]

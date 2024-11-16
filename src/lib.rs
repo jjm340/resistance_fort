@@ -1,5 +1,5 @@
 pub mod character_record;
-pub mod improvement;
+pub mod menu;
 
 use crate::character_record::Character;
 use std::error::Error;
@@ -8,6 +8,7 @@ use std::process;
 use std::str::FromStr;
 
 pub enum Command {
+    Main,
     Quit,
     Purchase,
 }
@@ -81,10 +82,13 @@ pub fn process_input(context: &mut Context) {
             process::exit(0);
         }
         Ok(Command::Purchase) => {
+            show_menu(Command::Purchase);
             print!("Purchase a thing!");
         }
     }
 }
+
+fn show_menu(cmd: Command) {}
 
 pub fn update(context: &mut Context) {}
 
