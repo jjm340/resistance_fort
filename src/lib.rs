@@ -1,96 +1,58 @@
 pub mod character_record;
+pub mod commands;
+pub mod improvements;
+pub mod input;
 pub mod menu;
+pub mod utils;
+
+use commands::Command;
+use menu::main_menu;
 
 use crate::character_record::Character;
-use std::error::Error;
-use std::io;
-use std::process;
-use std::str::FromStr;
+use core::panic;
+use std::fmt;
 
-pub enum Command {
-    Main,
-    Quit,
-    Purchase,
+#[derive(Debug, Clone)]
+pub struct CommonError {
+    message: String,
 }
 
+impl CommonError {
+    pub fn new(message: String) -> CommonError {
+        CommonError { message }
+    }
+}
+
+impl fmt::Display for CommonError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "CommonError: {}", self.message)
+    }
+}
 // Tells you about the current situation in the game world
-pub struct Context {
-    character_record: Character,
-    current_status: String,
+pub struct Context<'a> {
+    character_record: Character<'a>,
 }
 
-impl Context {
-    pub fn new() -> Context {
+impl<'a> Context<'a> {
+    pub fn new() -> Context<'a> {
         Context {
             character_record: Character::new(),
-            current_status: String::from("Open"),
         }
     }
 }
 
-impl FromStr for Command {
-    type Err = io::Error;
-
-    fn from_str(input: &str) -> Result<Command, Self::Err> {
-        match input.trim() {
-            "q" | "quit" => Ok(Command::Quit),
-            "1" | "purchase" => Ok(Command::Purchase),
-            cmd_text => Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Unknown command \"{cmd_text}\""),
-            )),
+pub fn process_input<'a>(_context: &mut Context) -> Command<'a> {
+    match main_menu() {
+        Some(cmd) => cmd,
+        _ => {
+            panic!("The main menu produced no valid command");
         }
     }
 }
 
-fn input() -> Result<Command, Box<dyn Error>> {
-    let mut input = String::new();
-
-    let menu_string = format!(
-        r#"
-    Please select an option: 
-    1) Purchase improvement
-    2) Steal food
-    3) Steal currency
-"#
-    );
-
-    print!("{menu_string}");
-
-    if let Err(e) = io::stdin().read_line(&mut input) {
-        Err(Box::new(e))
-    } else {
-        let parsed = Command::from_str(&input);
-
-        match parsed {
-            Ok(cmd) => Ok(cmd),
-            Err(not_recognized) => Err(Box::new(not_recognized)),
-        }
-    }
+pub fn update<'a>(_context: &mut Context, next_command: Command<'a>) {
+    // TODO: Figure out which command was run and update state
 }
-
-pub fn process_input(context: &mut Context) {
-    let next_command = input();
-
-    match next_command {
-        Err(e) => {
-            eprintln!("Error fetching next command: {}", e);
-            process::exit(1);
-        }
-        Ok(Command::Quit) => {
-            println!("Exiting application...");
-            process::exit(0);
-        }
-        Ok(Command::Purchase) => {
-            show_menu(Command::Purchase);
-            print!("Purchase a thing!");
-        }
-    }
-}
-
-fn show_menu(cmd: Command) {}
-
-pub fn update(context: &mut Context) {}
 
 pub fn render(context: &Context) {
     println!();
