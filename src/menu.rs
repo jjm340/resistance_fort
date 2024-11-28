@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use crate::{
     commands::Command,
-    improvements::{find_improvements, Improvement, ImprovementCollection},
+    improvements::{filter_improvements, Improvement, ImprovementCollection},
     input::fetch_input,
     utils::log_and_exit,
 };
 
-pub fn main_menu<'a>() -> Option<Command<'a>> {
+pub fn main_menu<'a>(improvement_collection: &ImprovementCollection) -> Option<Command<'a>> {
     let menu_string = format!(
         r#"
     Please select an option: 
@@ -23,7 +23,7 @@ pub fn main_menu<'a>() -> Option<Command<'a>> {
     let parsed = Command::from_str(&input);
 
     match parsed {
-        Ok(Command::PurchaseMenu) => show_purchase_menu(),
+        Ok(Command::PurchaseMenu) => show_purchase_menu(None, improvement_collection),
         Ok(Command::StealCurrency) => Some(Command::StealCurrency),
         Ok(Command::StealFood) => Some(Command::StealFood),
         Ok(Command::Quit) => log_and_exit(None),
@@ -39,10 +39,10 @@ pub fn main_menu<'a>() -> Option<Command<'a>> {
 }
 
 pub fn show_purchase_menu<'a>(
-    improvements: Option<&[Improvement]>,
+    selected_improvements: Option<&[&Improvement]>,
     improvement_collection: &ImprovementCollection,
 ) -> Option<Command<'a>> {
-    let improvements = improvements.unwrap_or(improvement_collection.all_improvements());
+    let improvements = selected_improvements.unwrap_or(improvement_collection.all_improvements());
 
     println!("What would you like to purchase?");
     let mut improvements_display = String::new();
@@ -62,15 +62,15 @@ pub fn show_purchase_menu<'a>(
             return None;
         }
 
-        let matched_results = find_improvements(&input);
+        let matched_results = filter_improvements(improvements, &input);
 
         match &matched_results[..] {
             [] => {
                 println!("Input not recognized, try again");
                 continue;
             }
-            [matched] => Some(Command::DoPurchase(matched)),
-            matches @ [..] => {}
+            [matched] => return Some(Command::DoPurchase(*matched)),
+            matches @ [..] => return show_purchase_menu(Some(matches), improvement_collection),
         }
     }
 }

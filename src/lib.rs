@@ -46,7 +46,7 @@ pub fn process_input<'a>(
     _context: &mut Context,
     improvement_collection: &ImprovementCollection,
 ) -> Command<'a> {
-    match main_menu() {
+    match main_menu(improvement_collection) {
         Some(cmd) => cmd,
         _ => {
             panic!("The main menu produced no valid command");

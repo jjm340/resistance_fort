@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self};
-use std::iter::Filter;
-use std::option::Iter;
+use std::sync::Mutex;
 
 use crate::utils::{log_and_exit, wrap_error};
 use crate::CommonError;
@@ -24,7 +23,7 @@ pub struct Improvement {
     pub benefit: Effect,
 }
 
-static mut IS_INITIALIZED: bool = false;
+static mut IS_INITIALIZED: Mutex<bool> = Mutex::new(false);
 
 pub struct ImprovementCollection {
     improvements: Vec<Improvement>,
@@ -39,53 +38,53 @@ impl ImprovementCollection {
         return Ok(results);
     }
 
-    pub fn filter_improvements(&self, search_input: &str) -> &[Improvement] {
-        let normalized_search_input = search_input.trim().to_lowercase();
-
-        let results: Vec<Improvement> = self
-            .improvements
-            .iter()
-            .filter(|probe| {
-                (**probe)
-                    .name
-                    .to_lowercase()
-                    .contains(&normalized_search_input)
-                    || (**probe)
-                        .description
-                        .to_lowercase()
-                        .contains(&normalized_search_input)
-            })
-            .collect();
-
-        &results[..]
-    }
-
     pub fn all_improvements(&self) -> &[Improvement] {
         &self.improvements[..]
     }
 
     pub fn new() -> ImprovementCollection {
         unsafe {
-            if IS_INITIALIZED {
+            let mut is_initialized = IS_INITIALIZED.lock().unwrap();
+            if *is_initialized {
                 log_and_exit(Some(Box::new(CommonError::new(
                     "Do not try and initialize data twice".to_string(),
                 ))))
             }
-        }
 
-        let loaded_improvements = ImprovementCollection::load_improvements();
+            let loaded_improvements = ImprovementCollection::load_improvements();
 
-        match loaded_improvements {
-            Ok(improvements) => {
-                unsafe {
-                    IS_INITIALIZED = true;
+            match loaded_improvements {
+                Ok(improvements) => {
+                    *is_initialized = true;
+                    return ImprovementCollection { improvements };
                 }
-
-                return ImprovementCollection { improvements };
+                Err(e) => log_and_exit(wrap_error(e)),
             }
-            Err(e) => log_and_exit(wrap_error(e)),
         }
     }
+}
+
+pub fn filter_improvements<'a>(
+    improvements: &'a [Improvement],
+    search_input: &str,
+) -> Vec<&'a Improvement> {
+    let normalized_search_input = search_input.trim().to_lowercase();
+
+    let results: Vec<&Improvement> = improvements
+        .iter()
+        .filter(|probe| {
+            (*probe)
+                .name
+                .to_lowercase()
+                .contains(&normalized_search_input)
+                || (*probe)
+                    .description
+                    .to_lowercase()
+                    .contains(&normalized_search_input)
+        })
+        .collect();
+
+    results
 }
 
 #[cfg(test)]
@@ -94,22 +93,12 @@ mod tests {
 
     #[test]
     fn load_improvements_parses_json_file_for_data() {
-        let results = load_improvements();
+        let col = ImprovementCollection::new();
 
-        match results {
-            Ok(results) => {
-                println!("results: {:?}", results);
+        let granary = &col.improvements[0];
+        let tavern = &col.improvements[1];
 
-                let granary = &results[0];
-                let tavern = &results[1];
-
-                assert_eq!(granary.name, "Granary");
-                assert_eq!(tavern.name, "Tavern");
-            }
-            _ => {
-                println!("{:?}", results);
-                panic!("Should return results")
-            }
-        }
+        assert_eq!(granary.name, "Granary");
+        assert_eq!(tavern.name, "Tavern");
     }
 }
