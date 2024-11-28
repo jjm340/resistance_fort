@@ -1,6 +1,6 @@
-use std::{error::Error, process};
+use std::{fmt::Display, process};
 
-pub fn log_and_exit(e: Option<Box<dyn Error>>) -> ! {
+pub fn log_and_exit(e: Option<Box<dyn Display>>) -> ! {
     if let Some(err) = e {
         eprintln!("Fatal error occurred: {}", err);
         process::exit(1);
@@ -8,4 +8,8 @@ pub fn log_and_exit(e: Option<Box<dyn Error>>) -> ! {
 
     print!("Exiting normally...");
     process::exit(0);
+}
+
+pub fn wrap_error<T: Display + 'static>(e: T) -> Option<Box<dyn Display>> {
+    Some(Box::new(e))
 }

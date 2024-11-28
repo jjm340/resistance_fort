@@ -1,7 +1,10 @@
 use std::str::FromStr;
 
 use crate::{
-    commands::Command, improvements::IMPROVEMENTS, input::fetch_input, utils::log_and_exit,
+    commands::Command,
+    improvements::{find_improvements, Improvement, ImprovementCollection},
+    input::fetch_input,
+    utils::log_and_exit,
 };
 
 pub fn main_menu<'a>() -> Option<Command<'a>> {
@@ -35,11 +38,16 @@ pub fn main_menu<'a>() -> Option<Command<'a>> {
     }
 }
 
-pub fn show_purchase_menu<'a>() -> Option<Command<'a>> {
+pub fn show_purchase_menu<'a>(
+    improvements: Option<&[Improvement]>,
+    improvement_collection: &ImprovementCollection,
+) -> Option<Command<'a>> {
+    let improvements = improvements.unwrap_or(improvement_collection.all_improvements());
+
     println!("What would you like to purchase?");
     let mut improvements_display = String::new();
 
-    for (_, improvement) in IMPROVEMENTS.iter() {
+    for improvement in improvements.iter() {
         let formatted = format!("{}: {}\n", improvement.name, improvement.description);
         improvements_display += &formatted[..];
     }
@@ -54,15 +62,15 @@ pub fn show_purchase_menu<'a>() -> Option<Command<'a>> {
             return None;
         }
 
-        match IMPROVEMENTS.get(&input) {
-            Some(selected) => {
-                println!("{} selected!", selected.name);
-                Some(Command::DoPurchase(selected));
-            }
-            None => {
+        let matched_results = find_improvements(&input);
+
+        match &matched_results[..] {
+            [] => {
                 println!("Input not recognized, try again");
                 continue;
             }
+            [matched] => Some(Command::DoPurchase(matched)),
+            matches @ [..] => {}
         }
     }
 }

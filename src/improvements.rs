@@ -1,10 +1,11 @@
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::io::{self};
+use std::iter::Filter;
+use std::option::Iter;
 
-use crate::utils::log_and_exit;
+use crate::utils::{log_and_exit, wrap_error};
+use crate::CommonError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum EffectCostType {
@@ -23,23 +24,68 @@ pub struct Improvement {
     pub benefit: Effect,
 }
 
-lazy_static! {
-    pub static ref IMPROVEMENTS: HashMap<String, Improvement> = {
-        let results = load_improvements();
+static mut IS_INITIALIZED: bool = false;
 
-        match results {
-            Ok(results) => results,
-            Err(e) => log_and_exit(Some(Box::new(e))),
-        }
-    };
+pub struct ImprovementCollection {
+    improvements: Vec<Improvement>,
 }
 
-fn load_improvements() -> Result<HashMap<String, Improvement>, io::Error> {
-    let contents = fs::read_to_string("./data/improvements.json")?;
+impl ImprovementCollection {
+    fn load_improvements() -> Result<Vec<Improvement>, io::Error> {
+        let contents = fs::read_to_string("./data/improvements.json")?;
 
-    let results: HashMap<String, Improvement> = serde_json::from_str(&contents)?;
+        let results: Vec<Improvement> = serde_json::from_str(&contents)?;
 
-    return Ok(results);
+        return Ok(results);
+    }
+
+    pub fn filter_improvements(&self, search_input: &str) -> &[Improvement] {
+        let normalized_search_input = search_input.trim().to_lowercase();
+
+        let results: Vec<Improvement> = self
+            .improvements
+            .iter()
+            .filter(|probe| {
+                (**probe)
+                    .name
+                    .to_lowercase()
+                    .contains(&normalized_search_input)
+                    || (**probe)
+                        .description
+                        .to_lowercase()
+                        .contains(&normalized_search_input)
+            })
+            .collect();
+
+        &results[..]
+    }
+
+    pub fn all_improvements(&self) -> &[Improvement] {
+        &self.improvements[..]
+    }
+
+    pub fn new() -> ImprovementCollection {
+        unsafe {
+            if IS_INITIALIZED {
+                log_and_exit(Some(Box::new(CommonError::new(
+                    "Do not try and initialize data twice".to_string(),
+                ))))
+            }
+        }
+
+        let loaded_improvements = ImprovementCollection::load_improvements();
+
+        match loaded_improvements {
+            Ok(improvements) => {
+                unsafe {
+                    IS_INITIALIZED = true;
+                }
+
+                return ImprovementCollection { improvements };
+            }
+            Err(e) => log_and_exit(wrap_error(e)),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -54,8 +100,8 @@ mod tests {
             Ok(results) => {
                 println!("results: {:?}", results);
 
-                let granary = results.get("granary").unwrap();
-                let tavern = results.get("tavern").unwrap();
+                let granary = &results[0];
+                let tavern = &results[1];
 
                 assert_eq!(granary.name, "Granary");
                 assert_eq!(tavern.name, "Tavern");

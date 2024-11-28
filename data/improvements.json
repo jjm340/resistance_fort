@@ -1,14 +1,14 @@
-{
-  "tavern": {
+[
+  {
     "name": "Tavern",
     "description": "Structure that generates income in exchange for food",
     "cost": ["Food", 1],
     "benefit": ["Cash", 1]
   },
-  "granary": {
+  {
     "name": "Granary",
     "description": "Structure that generates food in exchange for income",
     "cost": ["Cash", 1],
     "benefit": ["Food", 1]
   }
-}
+]

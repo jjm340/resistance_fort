@@ -6,6 +6,7 @@ pub mod menu;
 pub mod utils;
 
 use commands::Command;
+use improvements::ImprovementCollection;
 use menu::main_menu;
 
 use crate::character_record::Character;
@@ -41,7 +42,10 @@ impl<'a> Context<'a> {
     }
 }
 
-pub fn process_input<'a>(_context: &mut Context) -> Command<'a> {
+pub fn process_input<'a>(
+    _context: &mut Context,
+    improvement_collection: &ImprovementCollection,
+) -> Command<'a> {
     match main_menu() {
         Some(cmd) => cmd,
         _ => {
