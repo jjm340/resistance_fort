@@ -5,12 +5,13 @@ pub mod input;
 pub mod menu;
 pub mod utils;
 
+use character_record::ResourceType;
 use commands::Command;
 use menu::main_menu;
 
 use crate::character_record::Character;
 use core::panic;
-use std::fmt;
+use std::{cell::RefCell, fmt};
 
 #[derive(Debug, Clone)]
 pub struct CommonError {
@@ -28,20 +29,8 @@ impl fmt::Display for CommonError {
         write!(f, "CommonError: {}", self.message)
     }
 }
-// Tells you about the current situation in the game world
-pub struct Context<'a> {
-    character_record: Character<'a>,
-}
 
-impl<'a> Context<'a> {
-    pub fn new() -> Context<'a> {
-        Context {
-            character_record: Character::new(),
-        }
-    }
-}
-
-pub fn process_input<'a>(_context: &mut Context) -> Command<'a> {
+pub fn process_input<'a>() -> Command<'a> {
     match main_menu() {
         Some(cmd) => cmd,
         _ => {
@@ -50,13 +39,25 @@ pub fn process_input<'a>(_context: &mut Context) -> Command<'a> {
     }
 }
 
-pub fn update<'a>(_context: &mut Context, next_command: Command<'a>) {
+pub fn update<'a>(character: &RefCell<Character<'a>>, next_command: Command<'a>) {
     // TODO: Figure out which command was run and update state
     println!("Command: {:?}", next_command);
+
+    match next_command {
+        Command::DoPurchase(improvement) => {
+            let result = character.borrow_mut().purchase(improvement);
+        }
+        Command::StealCurrency => {
+            character.borrow_mut().gather_resouce(ResourceType::Income);
+        }
+        Command::StealFood => {
+            character.borrow_mut().gather_resouce(ResourceType::Food);
+        }
+        cmd => print!("{:?} is not valid in this context", cmd),
+    }
 }
 
-pub fn render(context: &Context) {
+pub fn render(character: &Character) {
     println!();
-
-    context.character_record.print_hud();
+    character.print_hud();
 }

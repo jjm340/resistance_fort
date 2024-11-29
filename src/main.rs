@@ -1,11 +1,14 @@
-use resistance_fort::{process_input, render, update, Context};
+use resistance_fort::{character_record::Character, process_input, render, update};
+use std::cell::RefCell;
 
 fn main() {
-    let mut context = Context::new();
+    let character = RefCell::new(Character::new());
 
     loop {
-        let next_command = process_input(&mut context);
-        update(&mut context, next_command);
-        render(&context);
+        let next_command = process_input();
+
+        // let mut mut_context =
+        update(&character, next_command);
+        render(&character.borrow());
     }
 }

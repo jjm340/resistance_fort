@@ -53,7 +53,7 @@ impl<'a> Character<'a> {
         return resouce_gathered;
     }
 
-    pub fn purchase(&mut self, impr: &'a Improvement) -> Result<(), CommonError> {
+    pub fn purchase(&mut self, impr: &'a Improvement) -> Option<CommonError> {
         let (result, action): (i32, Box<dyn FnOnce() -> ()>) = match impr.cost.0 {
             EffectType::Cash => {
                 let inner_result: i32 = (self.cash as i32) - (impr.cost.1 as i32);
@@ -79,10 +79,10 @@ impl<'a> Character<'a> {
             action();
 
             self.improvements.push(impr);
-            Ok(())
+            None
         } else {
             let err = CommonError::new("You do not have enough to make this purchase".to_string());
-            Err(err)
+            Some(err)
         }
     }
 }
@@ -105,8 +105,8 @@ mod tests {
         };
 
         match character.purchase(&improvement) {
-            Ok(()) => assert!(true),
-            Err(e) => panic!("Purchase should not return an error: {}", e),
+            None => assert!(true),
+            Some(e) => panic!("Purchase should not return an error: {}", e),
         }
 
         assert_eq!(character.cash, 99);
@@ -128,8 +128,8 @@ mod tests {
         };
 
         match character.purchase(&improvement) {
-            Ok(()) => panic!("Should have thrown an error"),
-            Err(e) => assert_eq!(
+            None => panic!("Should have thrown an error"),
+            Some(e) => assert_eq!(
                 e.message,
                 "You do not have enough to make this purchase".to_string()
             ),
