@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{
     improvements::{EffectType, Improvement},
     CommonError,
@@ -16,6 +18,15 @@ pub struct Character<'a> {
 pub enum ResourceType {
     Food,
     Income,
+}
+
+impl fmt::Display for ResourceType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ResourceType::Food => write!(f, "Food"),
+            ResourceType::Income => write!(f, "Cash"),
+        }
+    }
 }
 
 impl<'a> Character<'a> {
@@ -48,6 +59,7 @@ impl<'a> Character<'a> {
             }),
         };
 
+        println!("Gathered {} {}", resouce_gathered, resource_type);
         action();
 
         return resouce_gathered;

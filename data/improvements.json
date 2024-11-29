@@ -2,13 +2,13 @@
   {
     "name": "Tavern",
     "description": "Structure that generates income in exchange for food",
-    "cost": ["Food", 1],
+    "cost": ["Cash", 60],
     "benefit": ["Cash", 1]
   },
   {
     "name": "Granary",
     "description": "Structure that generates food in exchange for income",
-    "cost": ["Cash", 1],
+    "cost": ["Cash", 40],
     "benefit": ["Food", 1]
   }
 ]

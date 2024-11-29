@@ -3,6 +3,7 @@ use std::cell::RefCell;
 
 fn main() {
     let character = RefCell::new(Character::new());
+    character.borrow().print_hud();
 
     loop {
         let next_command = process_input();

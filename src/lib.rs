@@ -40,12 +40,11 @@ pub fn process_input<'a>() -> Command<'a> {
 }
 
 pub fn update<'a>(character: &RefCell<Character<'a>>, next_command: Command<'a>) {
-    // TODO: Figure out which command was run and update state
-    println!("Command: {:?}", next_command);
-
     match next_command {
         Command::DoPurchase(improvement) => {
-            let result = character.borrow_mut().purchase(improvement);
+            if let Some(err) = character.borrow_mut().purchase(improvement) {
+                eprintln!("{}", err.message);
+            }
         }
         Command::StealCurrency => {
             character.borrow_mut().gather_resouce(ResourceType::Income);
