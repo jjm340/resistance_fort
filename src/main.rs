@@ -3,7 +3,7 @@
 
 use resistance_fort::{
     // character_record::{self, load_improvements, Character, Improvement},
-    improvements::{self, ImprovementCollection},
+    improvements::ImprovementCollection,
     process_input,
     render,
     update,

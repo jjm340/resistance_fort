@@ -7,7 +7,7 @@ use crate::{
     utils::log_and_exit,
 };
 
-pub fn main_menu<'a>(improvement_collection: &ImprovementCollection) -> Option<Command<'a>> {
+pub fn main_menu<'a>(improvement_collection: &'a ImprovementCollection) -> Option<Command<'a>> {
     let menu_string = format!(
         r#"
     Please select an option: 
@@ -39,8 +39,8 @@ pub fn main_menu<'a>(improvement_collection: &ImprovementCollection) -> Option<C
 }
 
 pub fn show_purchase_menu<'a>(
-    selected_improvements: Option<&[&Improvement]>,
-    improvement_collection: &ImprovementCollection,
+    selected_improvements: Option<Vec<&'a Improvement>>,
+    improvement_collection: &'a ImprovementCollection,
 ) -> Option<Command<'a>> {
     let improvements = selected_improvements.unwrap_or(improvement_collection.all_improvements());
 
@@ -62,30 +62,36 @@ pub fn show_purchase_menu<'a>(
             return None;
         }
 
-        let matched_results = filter_improvements(improvements, &input);
+        let matched_results = filter_improvements(&improvements, &input);
 
         match &matched_results[..] {
             [] => {
                 println!("Input not recognized, try again");
                 continue;
             }
-            [matched] => return Some(Command::DoPurchase(*matched)),
-            matches @ [..] => return show_purchase_menu(Some(matches), improvement_collection),
+            [matched] => {
+                println!("Ah, {:?} selected, good choice!", matched.name);
+                return Some(Command::DoPurchase(*matched));
+            }
+            matches @ [..] => {
+                println!("Multiple matches found, filtering...");
+                return show_purchase_menu(Some(matches.to_vec()), improvement_collection);
+            }
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn it_examples_returns_results() {
-        // let mut improvements_hash = HashMap::new();
-        // improvements_hash.insert("Tavern", 12345);
+//     #[test]
+//     fn it_examples_returns_results() {
+//         // let mut improvements_hash = HashMap::new();
+//         // improvements_hash.insert("Tavern", 12345);
 
-        // let result = improvements_hash.get("tavern");
+//         // let result = improvements_hash.get("tavern");
 
-        // assert_eq!(result, Some(&12345));
-    }
-}
+//         // assert_eq!(result, Some(&12345));
+//     }
+// }

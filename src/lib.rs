@@ -44,7 +44,7 @@ impl<'a> Context<'a> {
 
 pub fn process_input<'a>(
     _context: &mut Context,
-    improvement_collection: &ImprovementCollection,
+    improvement_collection: &'a ImprovementCollection,
 ) -> Command<'a> {
     match main_menu(improvement_collection) {
         Some(cmd) => cmd,
