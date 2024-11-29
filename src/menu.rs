@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use crate::{
     commands::Command,
-    improvements::{filter_improvements, Improvement, ImprovementCollection},
+    improvements::{all_improvements, filter_improvements, Improvement},
     input::fetch_input,
     utils::log_and_exit,
 };
 
-pub fn main_menu<'a>(improvement_collection: &'a ImprovementCollection) -> Option<Command<'a>> {
+pub fn main_menu<'a>() -> Option<Command<'a>> {
     let menu_string = format!(
         r#"
     Please select an option: 
@@ -23,7 +23,7 @@ pub fn main_menu<'a>(improvement_collection: &'a ImprovementCollection) -> Optio
     let parsed = Command::from_str(&input);
 
     match parsed {
-        Ok(Command::PurchaseMenu) => show_purchase_menu(None, improvement_collection),
+        Ok(Command::PurchaseMenu) => show_purchase_menu(None),
         Ok(Command::StealCurrency) => Some(Command::StealCurrency),
         Ok(Command::StealFood) => Some(Command::StealFood),
         Ok(Command::Quit) => log_and_exit(None),
@@ -40,9 +40,8 @@ pub fn main_menu<'a>(improvement_collection: &'a ImprovementCollection) -> Optio
 
 pub fn show_purchase_menu<'a>(
     selected_improvements: Option<Vec<&'a Improvement>>,
-    improvement_collection: &'a ImprovementCollection,
 ) -> Option<Command<'a>> {
-    let improvements = selected_improvements.unwrap_or(improvement_collection.all_improvements());
+    let improvements = selected_improvements.unwrap_or(all_improvements().iter().collect());
 
     println!("What would you like to purchase?");
     let mut improvements_display = String::new();
@@ -62,21 +61,17 @@ pub fn show_purchase_menu<'a>(
             return None;
         }
 
-        let matched_results = filter_improvements(&improvements, &input);
+        let matched_results = filter_improvements(&input);
 
-        match &matched_results[..] {
-            [] => {
-                println!("Input not recognized, try again");
-                continue;
-            }
-            [matched] => {
-                println!("Ah, {:?} selected, good choice!", matched.name);
-                return Some(Command::DoPurchase(*matched));
-            }
-            matches @ [..] => {
-                println!("Multiple matches found, filtering...");
-                return show_purchase_menu(Some(matches.to_vec()), improvement_collection);
-            }
+        if matched_results.len() == 0 {
+            println!("Input not recognized, try again");
+            continue;
+        } else if matched_results.len() == 1 {
+            println!("Ah, {:?} selected, good choice!", matched_results[0].name);
+            return Some(Command::DoPurchase(matched_results[0]));
+        } else {
+            println!("Multiple matches found, filtering...");
+            return show_purchase_menu(Some(matched_results));
         }
     }
 }

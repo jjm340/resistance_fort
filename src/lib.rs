@@ -6,7 +6,6 @@ pub mod menu;
 pub mod utils;
 
 use commands::Command;
-use improvements::ImprovementCollection;
 use menu::main_menu;
 
 use crate::character_record::Character;
@@ -42,11 +41,8 @@ impl<'a> Context<'a> {
     }
 }
 
-pub fn process_input<'a>(
-    _context: &mut Context,
-    improvement_collection: &'a ImprovementCollection,
-) -> Command<'a> {
-    match main_menu(improvement_collection) {
+pub fn process_input<'a>(_context: &mut Context) -> Command<'a> {
+    match main_menu() {
         Some(cmd) => cmd,
         _ => {
             panic!("The main menu produced no valid command");
@@ -56,6 +52,7 @@ pub fn process_input<'a>(
 
 pub fn update<'a>(_context: &mut Context, next_command: Command<'a>) {
     // TODO: Figure out which command was run and update state
+    println!("Command: {:?}", next_command);
 }
 
 pub fn render(context: &Context) {

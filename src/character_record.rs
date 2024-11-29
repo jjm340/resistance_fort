@@ -1,5 +1,5 @@
 use crate::{
-    improvements::{EffectCostType, Improvement},
+    improvements::{EffectType, Improvement},
     CommonError,
 };
 use rand::Rng;
@@ -55,7 +55,7 @@ impl<'a> Character<'a> {
 
     pub fn purchase(&mut self, impr: &'a Improvement) -> Result<(), CommonError> {
         let (result, action): (i32, Box<dyn FnOnce() -> ()>) = match impr.cost.0 {
-            EffectCostType::Cash => {
+            EffectType::Cash => {
                 let inner_result: i32 = (self.cash as i32) - (impr.cost.1 as i32);
 
                 let action = Box::new(|| -> () {
@@ -64,7 +64,7 @@ impl<'a> Character<'a> {
 
                 (inner_result, action)
             }
-            EffectCostType::Food => {
+            EffectType::Food => {
                 let inner_result: i32 = (self.food as i32) - (impr.cost.1 as i32);
 
                 let action = Box::new(|| -> () {
@@ -100,8 +100,8 @@ mod tests {
         let improvement = Improvement {
             name: String::from("Test improvement"),
             description: String::from("This describes the test improvement"),
-            cost: (EffectCostType::Cash, 1),
-            benefit: (EffectCostType::Food, 1),
+            cost: (EffectType::Cash, 1),
+            benefit: (EffectType::Food, 1),
         };
 
         match character.purchase(&improvement) {
@@ -123,8 +123,8 @@ mod tests {
         let improvement = Improvement {
             name: String::from("Test improvement"),
             description: String::from("This describes the test improvement"),
-            cost: (EffectCostType::Food, 101),
-            benefit: (EffectCostType::Cash, 1),
+            cost: (EffectType::Food, 101),
+            benefit: (EffectType::Cash, 1),
         };
 
         match character.purchase(&improvement) {
