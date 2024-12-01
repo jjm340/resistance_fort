@@ -1,99 +1,62 @@
 pub mod character_record;
+pub mod commands;
+pub mod improvements;
+pub mod input;
 pub mod menu;
+pub mod utils;
+
+use character_record::ResourceType;
+use commands::Command;
+use menu::main_menu;
 
 use crate::character_record::Character;
-use std::error::Error;
-use std::io;
-use std::process;
-use std::str::FromStr;
+use core::panic;
+use std::{cell::RefCell, fmt};
 
-pub enum Command {
-    Main,
-    Quit,
-    Purchase,
+#[derive(Debug, Clone)]
+pub struct CommonError {
+    message: String,
 }
 
-// Tells you about the current situation in the game world
-pub struct Context {
-    character_record: Character,
-    current_status: String,
+impl CommonError {
+    pub fn new(message: String) -> CommonError {
+        CommonError { message }
+    }
 }
 
-impl Context {
-    pub fn new() -> Context {
-        Context {
-            character_record: Character::new(),
-            current_status: String::from("Open"),
+impl fmt::Display for CommonError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "CommonError: {}", self.message)
+    }
+}
+
+pub fn process_input<'a>() -> Command<'a> {
+    match main_menu() {
+        Some(cmd) => cmd,
+        _ => {
+            panic!("The main menu produced no valid command");
         }
     }
 }
 
-impl FromStr for Command {
-    type Err = io::Error;
-
-    fn from_str(input: &str) -> Result<Command, Self::Err> {
-        match input.trim() {
-            "q" | "quit" => Ok(Command::Quit),
-            "1" | "purchase" => Ok(Command::Purchase),
-            cmd_text => Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Unknown command \"{cmd_text}\""),
-            )),
-        }
-    }
-}
-
-fn input() -> Result<Command, Box<dyn Error>> {
-    let mut input = String::new();
-
-    let menu_string = format!(
-        r#"
-    Please select an option: 
-    1) Purchase improvement
-    2) Steal food
-    3) Steal currency
-"#
-    );
-
-    print!("{menu_string}");
-
-    if let Err(e) = io::stdin().read_line(&mut input) {
-        Err(Box::new(e))
-    } else {
-        let parsed = Command::from_str(&input);
-
-        match parsed {
-            Ok(cmd) => Ok(cmd),
-            Err(not_recognized) => Err(Box::new(not_recognized)),
-        }
-    }
-}
-
-pub fn process_input(context: &mut Context) {
-    let next_command = input();
-
+pub fn update<'a>(character: &RefCell<Character<'a>>, next_command: Command<'a>) {
     match next_command {
-        Err(e) => {
-            eprintln!("Error fetching next command: {}", e);
-            process::exit(1);
+        Command::DoPurchase(improvement) => {
+            if let Some(err) = character.borrow_mut().purchase(improvement) {
+                eprintln!("{}", err.message);
+            }
         }
-        Ok(Command::Quit) => {
-            println!("Exiting application...");
-            process::exit(0);
+        Command::StealCurrency => {
+            character.borrow_mut().gather_resouce(ResourceType::Income);
         }
-        Ok(Command::Purchase) => {
-            show_menu(Command::Purchase);
-            print!("Purchase a thing!");
+        Command::StealFood => {
+            character.borrow_mut().gather_resouce(ResourceType::Food);
         }
+        cmd => print!("{:?} is not valid in this context", cmd),
     }
 }
 
-fn show_menu(cmd: Command) {}
-
-pub fn update(context: &mut Context) {}
-
-pub fn render(context: &Context) {
+pub fn render(character: &Character) {
     println!();
-
-    context.character_record.print_hud();
+    character.print_hud();
 }
