@@ -2,6 +2,7 @@ pub mod character_record;
 pub mod commands;
 pub mod improvements;
 pub mod input;
+pub mod map;
 pub mod menu;
 pub mod utils;
 

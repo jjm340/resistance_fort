@@ -1,0 +1,57 @@
+{
+  "0": {
+    "name": "Nether",
+    "description": "This place barely exists - a swirling set of winds and purple hue encompass the entirety of the place.",
+    "exits": [
+      {
+        "direction": "n",
+        "description": "A floating, swirling passage leads to the north",
+        "destination": "1"
+      }
+    ]
+  },
+  "1": {
+    "name": "Cameriel",
+    "description": "A floating city set against a blue sky consisting of floating patches of dirt, covered in green grass adorned with flowers of many colors.",
+    "exits": [
+      {
+        "direction": "s",
+        "description": "A floating, swirling passage leads to the south",
+        "destination": "0"
+      }
+    ]
+  },
+  "2": {
+    "name": "Darkrend",
+    "description": "A grey and desolate sky, scattered with what seems like constant lightning strikes",
+    "exits": [
+      {
+        "direction": "s",
+        "description": "A floating, swirling passage leads to the south",
+        "destination": "0"
+      }
+    ]
+  },
+  "3": {
+    "name": "Tubeliam",
+    "description": "A busseling city of cast iron tubes, humid with steam and smoke.",
+    "exits": [
+      {
+        "direction": "s",
+        "description": "A floating, swirling passage leads to the south",
+        "destination": "0"
+      }
+    ]
+  },
+  "4": {
+    "name": "The Hub",
+    "description": "The capital city of the continent of Messianika. This is the only region that has a solid landscape capable of having streets, buildings and general life.",
+    "exits": [
+      {
+        "direction": "s",
+        "description": "A floating, swirling passage leads to the south",
+        "destination": "0"
+      }
+    ]
+  }
+}
